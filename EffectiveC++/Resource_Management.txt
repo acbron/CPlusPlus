@@ -1,19 +1,75 @@
 				条款13：以对象管理资源
 			Use objects to manage resources.
-	所谓资源就是，一旦用了它，将来必须还给系统。 标记看哦3为nkl
+	所谓资源就是，一旦用了它，将来必须还给系统，否则就会导致内存泄漏。C++常用的资源就是动态分配内存，当然，还有文件描述器(file descripters),互斥器(mutex locks),sockets等。
+	考虑如下代码:
+void f()
+{
+	Investment *pInv = createInvestment(); //假定createInvestment()是一个factory函数
+	...
+	delete pInv;
+}
+	如果在"..."区域里出现了return，则pInv无法被释放！即使小心地安排语句的顺序可能会相对减少这样的错误，但是一样不利于维护和后期的修改。所以这样的资源管理方法是不合理的。考虑C++的析构函数，可以知道由对象管理资源的可能性：
+（1）获得资源后立刻放进管理对象内：也称为“资源取得时机便是初始化时机”(Resource Acquision Is Initialization;RAII)
+（2）管理对象运用析构函数确保资源被释放
+	比如上述代码可以改为:
+void f()
+{
+	std::auto_ptr<Investment> pInv(createInvestment()); //智能指针
+	...
+}
+	切勿让多个auto_ptr指向同个对象，因为auto_ptr被销毁时会自动删除它所指之物。如果对象被删除多次，程序将出现未定义行为。因此，auto_ptr在设计时有个性质：只有一个auto_ptr能够取得资源的唯一拥有权！所以STL容器容不得auto_ptr
+	auto_ptr的替代方案是“引用计数型智能指针”(reference-counting smart pointer:RISP)。这种类型的智能指针能够持续追踪共有多少对象指向某笔资源，并在无人指向它时自动删除该资源。TR1里的RSCP是std::tr1::shared_ptr
+	auto_ptr和shared_ptr析构函数内都采取delete而不是delete[]，所以不要用这两种智能指针去动态分配数组。
 
 
 
 
 				条款14：在资源管理类中小心copying行为
 			Think carefully about copying behavior in resource-managing classes.
+	auto_ptr和shared_ptr针对heap-based资源，但不是所有资源都是heap-based，所以很多时候都需要自己去建立资源管理类。考虑如下代码(对互斥器进行锁定和解锁)：
+void lock(Mutex *pm);
+void unlock(Mutex *pm);
+class Lock {
+public:
+	explicit Lock(Mutex *pm):mutexPtr(pm) { lock(mutexPtr); }
+	~Lock() { unlick(mutexPtr); }
+private:
+	Mutex *mutexPtr;
+};
+这里引出问题，如果一个RAII资源被复制，会发生什么？一般有如下解决方法：
+（1）禁止复制：把copying操作声明为private，避免编译器自动生成
+（2）对底层资源祭出“引用计数法”(reference-count)：比如shared_ptr。对于上述互斥器的例子，我们并不希望当shared_ptr的引用次数为0时删除其所指物，这时可以自定义删除器：
+class Lock {
+public:
+	explicit Lock(Mutex *pm):mutexPtr(pm,unlock) { lock(mutexPtr.get()); }
+	//没有必要声明析构函数了
+private:
+	std::tr1::shared_ptr<Mutex> mutexPtr;
+};					
+（3）复制底部资源
+（4）转移底部资源的拥有权：例如auto_ptr
 
 
 
 
 				条款15：在资源管理类中提供对原始资源的访问
 			Provide access to raw resources in resouces-managing classes.
-
+	尽管资源管理类很棒，但是我们无法避免地要直接访问原始资源(raw resources)。shared_ptr提供get()方法访问原始资源。同时，智能指针一般都重载了指针取值(pointer dereferencing)操作符(opertor->和operater*)，它们允许隐式转换至底部原始指针。
+	以下是两种访问原始资源的方法：
+//显式
+class Font {
+public:
+	...
+	FontHandle get() const { return f; }
+	...
+};
+//隐式
+class Font {
+public:
+	...
+	operator FontHandle() const { return f; }
+};
+显式不容易出差错，但隐式对客户方便。（个人认为，显式的会比较好）
 
 
 
@@ -24,8 +80,7 @@ std::string *str = new string;
 delete str;
 std::string *str = new string[2];
 delete []str;
-
-如果new和delete不配套使用，都会出现未定义行为。因为对于指向对象数组的指针，它的内存分配还包含一块存储数组大小的域，delete正是通过这个标记数据大小的域来调用对象的析构函数的。
+	如果new和delete不配套使用，都会出现未定义行为。因为对于指向对象数组的指针，它的内存分配还包含一块存储数组大小的域，delete正是通过这个标记数据大小的域来调用对象的析构函数的。
 
 
 
@@ -39,13 +94,11 @@ processWidget(new Widget,priority()); // (1)
 processWidget(std::tr1::shared_ptr<Widget>(new Widget),priority); // (2)
 
 （1）是无法通过编译的。因为tr1::shared_ptr构造函数需要一个原始指针(raw pointer)，但该构造函数是个explicit构造函数，无法进行隐式转换。
-（2）在调用前，编译器创建代码必须做三件事：
-调用priority,执行“new Widget”，调用tr1::shared_ptr构造函数。
-这就导致无法确定编译器是按什么顺序去完成这三件事的，假如有以下顺序：
+（2）在调用前，编译器创建代码必须做三件事：调用priority,执行“new Widget”，调用tr1::shared_ptr构造函数。
+	这就导致无法确定编译器是按什么顺序去完成这三件事的，假如有以下顺序：
 执行“new Widget”->调用priority->调用tr1::shared_ptr的构造函数
 如果priority调用出现异常，则“new Widget”返回的指针会遗失，导致资源泄漏。
-所以，合理的做法是，分离语句。
-
+	所以，合理的做法是，分离语句。
 std::tr1::shared_ptr<Widget> pw(new Widget);
 processWidget(pw,priority());
 
