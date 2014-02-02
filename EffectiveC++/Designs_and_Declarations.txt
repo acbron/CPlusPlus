@@ -1,0 +1,152 @@
+				条款18：让接口容易被正确使用，不易被误用
+			Make interfaces easy to use correctly and hard to use incorrectly.
+理想是：如果客户企图使用某个接口却得不到他的预期效果，则应该控制其编译不通过。一旦能够编译通过，就该是客户想要的。
+许多客户端错误可以因为导入新类型而得到预防。比如设计Date类，容易出现初始化次序出错，这时可以引入新类型struct day,month,year，从而让初始化得到显式。同时，为了对数据进行限制，可以在新类型中引入函数来返回需要的值。（注意enum不具备类型安全性，因为其可被当作int来使用）
+限制类型内什么事可做，什么事不可做。（比如item3的以const修饰operator*的返回类型）
+尽量使你的type行为与内置type一致，避免与内置type不兼容，真正的理由是为了提供一致的接口（以int作参考）
+尽量不要让客户必须记住某些事情。（比如让智能指针管理资源，不要让客户担当管理资源的责任）
+
+
+
+
+				条款19：设计class犹如设计type
+			Treat class design as type design.
+class的设计要视为设计type一样严谨，可能需要考虑重载函数和操作符、控制内存的分配和归还、定义对象的初始化和终结...等等。经常需要考虑的问题有：
+1.对象应该如何被创建和销毁：涉及构造和析构函数，内存分配和释放函数(new,new[],delete,delete[])
+2.对象初始化和对象的赋值之间的差别
+3.对象被pass by value意味着什么？(注意copy构造函数的性质)
+4.新type的合法值。(关乎约束条件和异常的问题)
+5.新type需要继承某个体系，或者被继承吗？(如果继承自其它类，应该考虑父类的限制，如果被其它类继承，考虑自身的析构函数是否声明为virtual)
+6.新type支持的类型转换。(关乎显式转换和隐式转换的选择)
+7.新type需要支持哪些操作符或者函数。
+8.什么样的标准函数该被返回？(比如编译器提供的默认构造函数，复制构造函数等，设计为private)
+9.新type的成员被谁采用？(设计成员的可见性，public,protected,private)
+10.什么是新type的“未声明接口”？(关乎效率，异常安全性以及资源运用的保证)
+11.新type是否需要一般化：如果是，考虑是否设计成template更合理？
+12.新type存在的必要性：如果该type是派生类，且只是为了对现有类添加技能，说不定单纯定义一个或多个non-member函数或templates更能达到目标。
+
+
+
+
+				条款20：宁以pass-by-reference-to-const替换pass-by-value
+			Prefer pass-by-reference-to-const to pass-by-value
+	pass-by-value在类中可能会有昂贵的复制构造函数以及析构函数的调用，比如对于一个drived-class，当以pass-by-value作为参数传递时，必然会调用父类和当前类的复制构造函数和析构函数（可能还包括数据成员是类对象的复制构造和析构）。
+以pass-by-reference-to-const时，没有任何函数被调用，const保证了原对象不被修改。在C++底层里，reference是往往以指针实现出来的。同时这种传递方式可以避免切割问题(slicing)，即当一个派生类对象以pass-by-value的方式传递给实参是父类对象的函数时，派生类的性质被切割了。
+总结：尽量用pass-by-reference-to-cons，效率高，而且可以避免切割问题。
+	对于内置类型，STL的迭代器和函数对象，则pass-by-value更好。因为传递指针的代价在此时比较昂贵。
+
+
+
+
+				条款21：必须返回对象时，别妄想返回其reference
+			Don't try to return a reference when you must return an object.
+	明确reference只是一个名称，代表一个已经存在的对象，所以任何时候看到一个reference表达式时，都应该问自己它的另一名称是什么。 
+切勿在成员函数里返回一个local变量(建立于stack)的reference，因为local变量在退出函数时就被销毁了，这会导致reference变成一个“无定义行为”的存在。返回指针也一样。 
+切勿在成员函数里返回一个heap-based变量(指针)，因为该变量由new创建，这会使得无法获得返回的reference背后的指针去delete而导致内存泄露。 
+切勿在成员函数里返回一个static对象的reference，因为调用者永远看到的都是static的“现值”，这会使得他们要做的比如“比较”判断永远返回true。（自己跟自己比~） 
+总结：正确的做法是，直接返回对象，这需要一次构造函数和析构函数的调用费用。但为了正确的行为付出这一点代价是值得的。另外，编译器会对实现代码进行最优化，所以我们只需定义正确行为，产出的代码效率则丢给编译器去处理。
+
+
+
+
+				条款22：将成员变量声明为private
+			Declare data members private.
+理由： 
+1.语义一致性：使用该类的客户用统一的方法访问、读、写成员变量（即通过成员函数） 
+2.有利于class充分的实现弹性：即利于维护，对class进行修改，删除对代码破坏量小 
+如果有public成员变量，一旦发生更改，可能会导致大量客户代码被破坏。 
+protected同样缺乏封装性，因为它的drived class代码一样遭到破坏。
+
+
+
+
+				条款23：宁以non-member,non-friend替换member函数
+			Prefer non-member non-friend functions to member functions.
+	封装性越好，越有利于改变。non-member non-friend函数比member函数的封装性好，因为它至少不能访问class内的private变量。 
+namespace的拓展性：可以将功能进行划分，在不同的头文件里声明，只要把这些头文件声明在同一个namespace里，就很方便地使得这些功能得到了整合。这里给出的启示就是，把non-member non-friend函数和其应用的类放在同一个namespace里，客户就能很方便地使用了。 
+总结：non-member non-friend更具有封装性，包裹弹性(修改带来更小的代价)和技能扩充性。
+
+
+
+
+				条款24：若所有参数皆需类型转换，请为此采用non-member函数
+			Declare non-member functions when type conversions should apply to all parameters.
+	如果定义class的运算符重载为member函数，则经常出现乘法无法实现交换律的情况。比如有书中以下有理数相乘的例子：
+class Rational
+{
+public:
+  Rational(int numberator = 0, int denominator = 1) //非explicit，支持隐式转换
+  int numerator() const;
+  int denominator() const;
+  const Rational operator* (const Rational &rhs) const;
+private:
+  ...
+}
+Rational oneHalf(1,2);
+Rational result = oneHalf*2; //OK,编译器将2这个int隐式转换成Rational
+Rational result2 = 2*oneHalf; //编译错误！因为只有当参数被列于参数列内，这个参数才能进行隐式转换
+                              //this这个隐含参数不是隐式转换的合格参与者
+
+解决方法是将operator*定义为non-member函数。即：
+const Rational operater* (const Rational &lhs,const Rational &rhs)
+{
+  return Rational(lhs.numerator()*rhs.numerator(),lhs.denominator()*rhs.denominator());
+}
+
+另外需要注意，当一个函数不适合定义为member函数时，并不一定就得定义为friend，friend能够避免则该避免。
+
+
+
+
+				条款25：考虑写出一个不抛异常的swap函数
+			Consider support for a non-throwing swap.
+std的swap处理方式很自然，代码如下：
+namespace std
+{
+  template <typename T>
+  void swap(T &a, T&b)
+  {
+    T temp(a);
+    a = b;
+    b = temp
+  }
+}
+
+以上操作是通过copy构造函数和copy assignment操作符完成的。
+但是如果T包含许多数据的时候，这样的操作就显得代价太大了。我们的处理方法是通过交换对象的指针。即"pimpl"手法：pointer to implementation。但一般的swap并不懂得这样去做，这就要求我们写一个特化的swap。C++允许对class template进行特化，可以将特化的swap定义为non-member friend,但推荐定义为public。代码如下：
+
+class ClassName
+{
+public:
+  void swap(ClassName &rhs) //真正进行置换工作的函数
+  {
+    using std::swap;//令std::swap在此可用   
+    swap(ptr,rhs.ptr);
+  }
+priate:
+  OtherClass *ptr;
+}
+namespace std  //在std里进行特化，这使得swap的使用跟一般的swap一致
+{
+  template<> 
+  void swap<ClassName> (ClassName &a,ClassName &b)
+  {
+    a.swap(b);
+  }
+}
+
+如果要进行特化的不是class，而是class template，以上方法就不再适用了。因为c++并不允许对function template进行特化，即上述的void swap<ClassName>无法定义了。处理方法是重载std::swap的版本，但不在std这个namespace下，因为C++不允许扩充std，我们将该重载写在自定义的namespace里，像这样：
+
+namespace OutClassStuff
+{
+  template <typename T>
+  class ClassName { ... } //与之前一样，定义public swap
+  template <typename T>
+  void swap(ClassName<T> &a,ClassName<T> &b)
+  {
+    a.swap(b);
+  }
+}
+
+TIPS：C++遵循argument-dependent lookup，即实参取决之查找规则，会首先选用特化的版本。
+总结：首先在class里定义实际置换的swap函数。如果单纯设计class，在std里特化swap。如果是class template，将non-member函数写在自定义namespace里。

@@ -1,0 +1,51 @@
+				条款13：以对象管理资源
+			Use objects to manage resources.
+	所谓资源就是，一旦用了它，将来必须还给系统。 标记看哦3为nkl
+
+
+
+
+				条款14：在资源管理类中小心copying行为
+			Think carefully about copying behavior in resource-managing classes.
+
+
+
+
+				条款15：在资源管理类中提供对原始资源的访问
+			Provide access to raw resources in resouces-managing classes.
+
+
+
+
+				条款16：成对使用new和delete时要采取相同形式
+			Use the same form in corresponding in uses of new and delete.
+	考虑如下代码：
+std::string *str = new string;
+delete str;
+std::string *str = new string[2];
+delete []str;
+
+如果new和delete不配套使用，都会出现未定义行为。因为对于指向对象数组的指针，它的内存分配还包含一块存储数组大小的域，delete正是通过这个标记数据大小的域来调用对象的析构函数的。
+
+
+
+
+				条款17：以独立语句将newed对象置入智能指针
+			Store newed objects in smart pointers in standalone statements.
+	假设有如下代码：
+int priority();
+void processWidget(std::tr1::shared_ptr<Widget> pw,int priority);
+processWidget(new Widget,priority()); // (1)
+processWidget(std::tr1::shared_ptr<Widget>(new Widget),priority); // (2)
+
+（1）是无法通过编译的。因为tr1::shared_ptr构造函数需要一个原始指针(raw pointer)，但该构造函数是个explicit构造函数，无法进行隐式转换。
+（2）在调用前，编译器创建代码必须做三件事：
+调用priority,执行“new Widget”，调用tr1::shared_ptr构造函数。
+这就导致无法确定编译器是按什么顺序去完成这三件事的，假如有以下顺序：
+执行“new Widget”->调用priority->调用tr1::shared_ptr的构造函数
+如果priority调用出现异常，则“new Widget”返回的指针会遗失，导致资源泄漏。
+所以，合理的做法是，分离语句。
+
+std::tr1::shared_ptr<Widget> pw(new Widget);
+processWidget(pw,priority());
+
