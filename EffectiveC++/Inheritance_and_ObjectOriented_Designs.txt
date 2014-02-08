@@ -1,0 +1,43 @@
+				条款32：确定你的public集成塑模出is-a关系
+			Make sure public inheritance models "is-a"
+	如果你令class D(Derived)以public形式继承class B(Base)，你便是告诉C++编译器(以及你的代码读者)说，每一个类型为D的对象同时也是一个类型为B的对象，反之不成立。即class B为一般化的，而D是特殊化的。
+	is-a意味着base class身上的每一件事一定也适用于derived class身上。
+
+
+
+				条款33：避免遮掩继承而来的名称
+			Avoid hiding inherited names
+	变量的作用域(scopes)中，如果有
+int x;
+void someFunc()
+{
+	double x;
+	std::cin >> x;
+}
+global变量int x会被local变量double x遮掩。这是C++的名称遮掩规则(name-hidig rules)干的。其查找规则是一层一层往上找，找到即止。同理，考虑继承体系中，有
+class Base{
+	public:
+		virtual void f1() = 0;
+		virtual void f1(int x);
+		...
+};
+class Derived:public Base{
+	virtual void f1();
+	...
+};
+则如果有一个Derived d对象，d.f1()调用的是Derived那个版本，而d.f1(3)却会编译不通过，这是因为Base上的所有重载的f1都被Derived遮掩了！考虑到is-a关系，这决不允许在public继承里发生！解决方法是：
+(1)在Derived class的public里使用声明式
+class Derived:public Base{
+	using Base::mf1;
+	virtual void f1();
+	...
+};
+(2)使用转交函数(forwarding functions)
+class Derived:public Base{
+	virtual void f1();
+	virtual void f1(int x)
+	{
+		Base::f1(x);
+	}
+	...
+};
