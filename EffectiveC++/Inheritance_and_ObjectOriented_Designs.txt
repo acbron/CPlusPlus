@@ -76,3 +76,65 @@ class Ellipse:public Shape { ... };
 	}
 但是，这样一来，原本为protected的函数便成了public。两种方法视情况而定。
 	(3)声明non-virtual函数的目的是为了令derived class继承函数的接口以及一份强制性的实现。
+
+
+
+				条款35：考虑virtual函数以外的其他选择
+			Consider alternatives to virtual functions.
+	略。暂时没看懂。
+
+
+
+				条款36：绝不重新定义继承而来的non-virtual函数
+			Never redefine an inherited non-virtual function.
+	考虑如下代码：
+class B {
+	public:
+		void mf();
+		...
+};
+class D:public B {
+	public:
+		void mf();
+		...
+};
+D x;
+B *pB = &x;
+D *pD = &x;
+pB->mf(); //调用B::mf
+pD->mf(); //调用D::mf
+既，虽然pB,pD指向的是同一个D对象，但却有着不同的行为。原因是，non-virtual函数都是静态绑定的(statically bound)，而virtual函数则是动态绑定的(dynamically bound)。所以，如果重新定义derived class继承而来的non-virtual函数，那么derived class对象就会发生类似精神分裂的行为。同时，这样的设计也不符合public继承是is-a关系，这是矛盾的设计。
+
+
+
+				条款37：绝不重新定义继承而来的缺省参数值
+			Never redefine a function's inherited default parameter value.
+	首先，根据条款36，重新定义一个继承而来的non-virtual函数永远是错的，所以只考虑继承一个带有缺省参数值的virtual函数。
+	静态绑定又名前期绑定(early binding)，动态绑定则称为后期绑定(late binding)。考虑上述继承，virtual函数属于动态继承，而缺省参数值属于静态继承。这里貌似就出现了分歧了。考虑以下代码：
+class Shape {
+	public:
+		enum ShapeColor {
+			Red,Green,Blue
+		};
+		virtual void draw(ShapeColor color = Red) const = 0;
+		...
+};
+class Rectangle:public Shape {
+	public:
+		virtual void draw(ShapeColor color = Green) const;
+		...
+};
+class Circle:public Shape {
+	public:
+		virtual void draw(ShapeColor color) const;
+		...
+};
+Shape *ps;
+Shape *pc = new Circle;
+Shape *pr = new Rectangle;
+ps,pc,pr都是以Shape*为静态类型的，但pc的动态类型是Circle*，pr的动态类型是Rectangle*。动态类型可以通过赋值进行改变，比如ps = pc。virtual函数的动态绑定，意思就是调用该virtual函数的版本取决与动态类型。
+再看上述继承体系，如果有pr->draw()，调用的竟然是Rectangle::draw(Shape::Red)！因为缺省参数值是静态绑定，所以该缺省参数值是来自与base class！也就是这个调用中，class Rectangle和class Shape各出一半力！这是奇怪的行为。
+而对于class Circle对draw()的定义，也是不妥的。因为这意味着Circle对象对draw()的调用必须提供参数，除非以指针或reference调用此函数时，才可以采用Shape的缺省参数值。
+那如果Rectangle的定义里，把缺省参数值改成与Shape一致的Red呢？也不好，代码重复，而且带有相依性。如果以后一旦修改了Shape class里draw()的缺省参数值，那就是惊一发动全身的事了。
+解决方法就是考虑virtual函数的替代设计了，见条款35
+
