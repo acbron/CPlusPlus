@@ -156,3 +156,25 @@ class Person {
 [注]：应用域指人，汽车等；实现域指缓冲区，互斥器，查找树等。上述Person和Address属于has-a关系
 
 
+
+				条款39：明智而审慎地使用private继承
+			Use private inheritance judiciously.
+	首先必须知道public继承时，编译器在必要时刻(为了让函数调用成功)会将derived class暗自转换成base class。而private继承意味着：
+		1.编译器不会将derived class暗自转换成base class
+		2.由private base class继承而来的的所有成员在derived class里都会变成private
+		3.private继承意味着implemented-in-terms-of(根据某物实现出)
+	private继承的用意在于采用base class内已经备妥的某些特性，而不是derived class对象和base class对象之间存在任何观念上的关系，即private继承纯粹只是一种实现技术(这也是2的存在意义，因为它们只是实现细节)。所以，private继承只有实现部分被继承，接口部分应略去。derived class对象仅仅是根据base class对象去实现，而没有其他任何意义。
+	由于private继承意味着implemented-in-terms-of，这跟复合的意义一样。在取舍时，应该尽量使用复合。
+	只有一种比较激进的情况下可能需要用到private继承。考虑如下代码：
+class Empty() {}; //理论上其对象应该不使用任何内存
+class HoldAnInt {
+	private:
+		int x;
+		Empty e;
+};
+	这时，sizeof(HoldAnInt) > sizeof(int)!然而，如果有：
+class HoldAnInt:private Empty {
+	private:
+		int x;
+};
+	此时，则sizeof(HoldAnInt) == sizeof(int)。这就是所谓的EBO(empty base optimization,空白基类最优化)。注意EBO只适用于单一继承。
