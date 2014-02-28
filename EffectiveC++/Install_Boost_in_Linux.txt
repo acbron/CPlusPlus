@@ -1,0 +1,7 @@
+1. 从boost.org上下载最新版boost库，比如boost_1_55_0.tar.bz2
+2. 解压 tar --bzip2 -xf /path/to/boost_1_55_0.tar.bz2
+3. cd /path/to/boost_1_55_0.tar.bz2
+4. ./bootstrap.sh 默认安装在/usr/local/include和/usr/local/lib，分别存放头文件和各种库。
+	注意./bootstrap.sh --help可以查看帮助文档
+5. 安装 ./b2 install
+
