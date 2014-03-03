@@ -1,0 +1,22 @@
+const限定符
+const是避免magic number的手段，解决magic number不利于开发和维护的弊端。
+注意：const默认为局部变量，只能在该对象所在文件里可见。解决方法是声明为extern
+	//file1.cpp
+	extern const int SIZE = 1024;
+	//file2.cpp
+	extern const int SIZE; //uses SIZE defined in file1
+
+引用
+引用是一种复合类型(compound type)：引用必须用与该引用同类型的对象初始化。
+	//code 1
+	double dval = 3.14;
+	int &ri = dval;
+	这时实际编译器干的是
+	int temp = dval;
+	int &ri = temp;
+	所以修改ri的值无法影响dval
+引用是对象的别名：当引用初始化后，只要该引用存在，它就保持绑定到初始化时指向的对象。不可能将引用绑定到另一个对象。
+const引用：指向const对象的引用，还可以指向字面常量和不同类型的对象，详细见上述code 1。
+
+
+
