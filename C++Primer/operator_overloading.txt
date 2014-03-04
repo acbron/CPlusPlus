@@ -11,10 +11,10 @@
 	+=，-=等复合赋值操作符以及自增，自减等通常是成员函数
 	对称的操作符，比如算术，相等，关系和位操作符，通常为非成员函数
 
-<1>重载输入和输出操作符
+				<1>重载输入和输出操作符
 	输出操作符<<
-//通常输出对象不该被改变，所以第二个参数是对象的const引用
-//输出操作符应该不要有格式控制，这跟内置类型一致。
+通常输出对象不该被改变，所以第二个参数是对象的const引用
+输出操作符应该不要有格式控制，这跟内置类型一致。
 ostream & << (ostream &os,const className &rhs)
 {
 	//do something
@@ -23,7 +23,7 @@ ostream & << (ostream &os,const className &rhs)
 }
 
 	输入操作符>>
-//输入操作符的第二个形参必须是非const，因为要将目标读入到对象中。而且，应该重视输入操作符必须要处理错误和文件结束的可能性
+输入操作符的第二个形参必须是非const，因为要将目标读入到对象中。而且，应该重视输入操作符必须要处理错误和文件结束的可能性
 istream & >> (istream &is,className &rhs)
 {
 	//do somthing
@@ -36,4 +36,35 @@ istream & >> (istream &is,className &rhs)
 }
 
 输入输出操作符必须是非成员函数，因为第一个参数必须是ostream/istream，不能是隐含的对象的this指针
+
+				<2>算术操作符
+设计原则(包括+,+=,-,-=等)
+定义为非成员函数
+通常先定义复合赋值操作符(+=)，定义算术操作符(+)时调用相应的复合赋值操作符。
+返回对象，而不能返回引用。这符合内置类型的标准，详细见Effectice C++ 条款21
+className operator + (const className&,const className &);
+
+				<3>相等操作符
+设计原则(包括==,!=)
+定义为非成员函数
+==意味着两个对象的所有成员变量都相同
+设计目的是避免让客户通过调用函数来判断相等，符合使用习惯
+通常定义了==，就应该定义!=
+==和!=的设计思路是，设计出一个，而另外一个调用前者
+bool operator == (const className&,const className&);
+
+				<4>赋值操作符
+设计原则(=)
+定义为成员函数
+必须返回对*this的引用(详情见Effective C++ 条款10)
+className& operator = (const className &);
+
+				<5>下标操作符
+设计原则([])
+定义为成员函数
+主要目的是提供读写访问，原型是下标操作符
+主要有两个版本：
+	int& operator [] (const size_t);//非const成员返回引用
+	const int& operatpr [] (const size_t) const; //const成员返回const引用
+
 
