@@ -6,6 +6,16 @@ const是避免magic number的手段，解决magic number不利于开发和维护
 	//file2.cpp
 	extern const int SIZE; //uses SIZE defined in file1
 
+指针和const限定符
+1.指向const对象的指针
+	const int x = 3; const int *ptr = &x;
+	这样的定义意味着，ptr指向的是一个const对象，所以无法通过ptr修改对象的值。同时，非指向const对象的指针用来指向const对象是会导致编译错误的！
+	如果将指向const对象的指针去指向一个非const对象，仍然无法通过指针去修改对象的值，因为系统会把它所指的对象都视为const。
+2.const指针
+	int x = 3; int *const cptr = &x;
+	意思是指针本身是const，它可以指向const对象，也可以指向非const对象，而且可以修改非const对象的值，但它本身无法被修改，即无法让它指向另外的对象。
+	这跟引用有点相似，所以const指针必须初始化。
+	
 引用
 引用是一种复合类型(compound type)：引用必须用与该引用同类型的对象初始化。
 	//code 1
@@ -17,6 +27,5 @@ const是避免magic number的手段，解决magic number不利于开发和维护
 	所以修改ri的值无法影响dval
 引用是对象的别名：当引用初始化后，只要该引用存在，它就保持绑定到初始化时指向的对象。不可能将引用绑定到另一个对象。
 const引用：指向const对象的引用，还可以指向字面常量和不同类型的对象，详细见上述code 1。
-
 
 
