@@ -28,4 +28,16 @@ const是避免magic number的手段，解决magic number不利于开发和维护
 引用是对象的别名：当引用初始化后，只要该引用存在，它就保持绑定到初始化时指向的对象。不可能将引用绑定到另一个对象。
 const引用：指向const对象的引用，还可以指向字面常量和不同类型的对象，详细见上述code 1。
 
+sizeof操作符
+int x;
+char c;
+sizeof(x) = 4;
+sizeof(c) = 1;
+class test{
+	int x;
+	char c;
+};
+sizeof(test) = 8; //即等于2*max(int,char)
+int *p = &x;
+sizeof(p) = 8,sizeof(*p) = 4; //即sizeof取的是指针所占内存的大小，如果解引用则取的是对象所占内存的大小
 

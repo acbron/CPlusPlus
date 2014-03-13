@@ -1,0 +1,22 @@
+1.bitset
+用于处理二进制的STL
+初始化对象：
+	bitset <length> b1; //构造长度为length的bitset对象，初始位全部为0
+	bitset <length> b2(unsigned int x); //用x的二进制值初始化
+	bitset <length> b3(string s); //用字符串初始化，字符串必须是0或1的集合，并且是反向赋值的。比如s=1100，则b3[0]==b3[1]==0,b3[2]==b3[3]==1;
+	bitset <length> b4(string s,int pos,int len); //从s[pos]开始（包括s[pos])长度为len
+方法：
+	b.set() //置全部位为1
+	b.set(pos) //将pos置为1
+	b.reset() //置全部位为0
+	b.reset(pos) //将pos置为0
+	b[pos] //提供下标读写
+	b.any() //判断b中是否有1
+	b.none() //判断b中是否无1
+	b.count() //返回1的个数
+	b.size() //返回b的长度
+	b.flip() //将所有位反转
+	b.flip(pos) //将pos位反转
+	b.to_ulong() //将b转换为unsigned long
+	b.to_string() //将b转换为字符串
+
