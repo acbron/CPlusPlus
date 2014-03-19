@@ -1,0 +1,53 @@
+1.宏可以像变量/函数一样被定义：
+#define SIZE 1024
+#define min(x,y) (x)>(y)?(y):(x)
+注意不要在将一个自增/减的变量作为宏参数
+#define mul(a) (a)*(a)
+mul(a++) ~ (a++)*(a++) 如果a=1，此时返回1，a=3
+mul(++a) ~ (++a)*(++a) 如果a=1，此时返回9，a=3
+
+2.如果宏需要参数，你可以不传，编译器会给你警告，但是这会导致错误。
+编译器（预处理器）对宏的语法检测不够，所以更多检查性工作得你自己
+来做
+
+3.#和##
+	#符号把一个符号直接转换成字符串
+#define STRING(x) #x
+const char *str = STRING(test_string);//str的内容是"test_string"
+	##符号会连接两个符号，从而产生新的符号
+#define CONNECT(a,b) (a##b) //结果为ab
+#define CONNECT2(a,b) (a##e##b)//CONNECT2(1,2)的结果为100
+
+4.变参宏
+#define LOG(format, ...) printf(format,__VA_ARGS__)
+LOG("%s %d",str,count)
+__VA_ARGS__是系统预定义宏，被自动替换为参数列表
+
+5.当一个宏自己调用自己时
+#define TEST(x) (x+TEST(X))
+为防止无限递归展开，语法规定，当一个宏遇到自己时，就停止展开。
+所以TEST(1)被展开为1+TEST(1)
+
+6.宏参数的prescan
+当一个宏参数被放进宏体时，这个宏参数会首先被全部展开，当展开后的宏参数被放进
+宏体时，预处理器对新展开的宏进行第二次扫描，并继续展开
+#define PARAM(x) x
+#define ADDPARAM(x) INT_##X
+则PARAM(ADDPARAM(1))的结果为INT_1
+
+如果PARAM宏里对宏参数使用了#或##，那么宏参数不会被展开
+#define PARAM(x) #x
+#define ADDPARAM(x) INT_##x
+则PARAM(ADDPARAM(1))的结果为ADDPARAM(1)
+解决此类问题的方法是加多一层中间转换宏
+#define _PARAM(x) #x
+#define PARAM(x) _PARAM(x)
+此时PARAM(ADDPARAM(1))的结果就仍为INT_1
+
+打印出一个宏被展开后的样子
+#define TO_STRING(x) TO_STRING1(x)
+#define TO_STRING1(x) #x
+只要把宏语句作为x传入TO_STRING即可查看该语句被展开后的样子
+
+
+
