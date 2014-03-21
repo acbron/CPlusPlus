@@ -29,15 +29,53 @@ const是避免magic number的手段，解决magic number不利于开发和维护
 const引用：指向const对象的引用，还可以指向字面常量和不同类型的对象，详细见上述code 1。
 
 sizeof操作符
+<1>常见类型的字节大小（单位：字节Byte）
+	int,unsigned int:4
+	short int,unsigned short int:2
+	long long,unsigned long long:8
+	float:4
+	double:8
+	char:1
+	bool:1
+	指针：32位系统下为4，64位系统下为8
+举个例子：
 int x;
-char c;
-sizeof(x) = 4;
-sizeof(c) = 1;
-class test{
-	int x;
-	char c;
-};
-sizeof(test) = 8; //即等于2*max(int,char)
 int *p = &x;
-sizeof(p) = 8,sizeof(*p) = 4; //即sizeof取的是指针所占内存的大小，如果解引用则取的是对象所占内存的大小
+sizeof(p) = 8,sizeof(*p) = 4; //即sizeof取的是指针所占内存的大小，如果解引用则取的是对象所占内存的大小（64位系统）
+char *ss = "0123" // sizeof(ss) = 8,指针的大小
+char ss[] = "0123" // sizeof(ss) = 5,字符串的大小，注意C风格字符串末尾的\0
+int a[100]; //sizeof(a) = 4*100 = 400
 
+<2>结构体的字节大小
+CPU的优化规则：对于n字节的元素(n=2,4,8...),它的首地址能被n整除，才能获得最佳性能。
+结构体的默认对齐参数是8
+如：
+struct B {
+	bool b;
+	int i;
+	bool b2;
+};
+sizeof(B) = 12
+struct C {
+	int i;
+	bool b;
+	bool b2;
+};
+sizeof(C) = 8;
+即以结构体内字节长度最长的元素为对齐参数，然后一行一行考虑。
+对于结构B，假设地址从0开始，bool b只有1字节，占了一行，但为了跟int对齐，实质上有三个字节是空的。
+所以int i在第二行，对齐到了字节4。同理bool b2也占了一行。
+具体图示为
+b - - -
+   i
+b - - -
+而结构C为
+   i
+b b - -
+
+再考虑空类情况
+class A{}; // sizeof(A) = 1
+class B{};
+class C:public A{}; // sizeof(C) = 1
+class D:public A,public B{}; //sizeof(D) = 1;
+class E:public virtual A{}; //sizeof(E) = 4,因为虚继承包含了虚指针
