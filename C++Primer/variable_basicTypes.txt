@@ -79,3 +79,5 @@ class B{};
 class C:public A{}; // sizeof(C) = 1
 class D:public A,public B{}; //sizeof(D) = 1;
 class E:public virtual A{}; //sizeof(E) = 4,因为虚继承包含了虚指针
+
+PS：sizeof不能求出动态分配的数组或外部数组的大小
