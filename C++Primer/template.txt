@@ -1,0 +1,98 @@
+泛型编程就是以独立于任何特定类型的方式编写代码，使用泛型程序时需要提供具体程序
+实例所操作的类型或值。
+模板是泛型编程的基础。
+泛型编程和面向对象编程一样，都依赖于某种形式的多态性：面向对象编程所依赖的是运行
+时多态性，泛型编程依赖的是编译时多态性或参数式多态性。
+
+<1>模板定义
+1.函数模板：是一个独立于类型的函数，可作为一种方式，产生函数的特定类型版本。
+模板定义以关键字template开始，后接模板形参表(template parameter list)，模板形参表
+用尖括号括住一个或多个模板形参的列表，形参之间以逗号隔开。
+template <typename T>
+int compare(const T &lhs,const T &rhs)
+{
+	if(lhs < rhs) return -1;
+	if(lhs > rhs) return 1;
+	return 0;
+}
+该模板使用T引用一个类型，T的实际类型由编译器根据所用的函数而确定。即，编译器会推
+断哪个模板实参(template argument)绑定到模板形参，一旦编译器确定了实际的模板实参，
+就称它实例化(instantiate)了函数模板的一个实例。
+
+inline函数模板
+template <typename T> inline T min(const T&,const T&);
+inline放在模板参数表后，返回类型之前。
+
+2.类模板：是一个独立于成员类型的类，可作为一种方式，产生类成员的特定类型版本。
+例如Queue类：
+template <class Type> class Queue {
+	public:
+		Queue();
+		Type &front();
+		const Type &front()const;
+		void push(const Type &);
+		void pop();
+		bool empty()const;
+	private:
+		...
+};
+使用类模板必须为模板形参显式制定实参：
+Queue <int> Q;
+
+3.模板形参
+(1)作用域
+模板形参遵循常规名字屏蔽规则，比如
+typedef double T;
+template <class T> T calc(const T &a,const T &b);
+模板形参的T会屏蔽掉全局的typedef
+(2)模板形参名字的限制
+用作模板形参的名字不能在模板内部重用：
+template <class T> calc(const T &a,const T &b) {
+	typedef double T; //error!
+	...
+}
+模板形参的名字只能在形参表中使用一次
+template <class T,class T> calc(const T &a,const T &b);//error!
+(3)在模板定义内部指定类型
+要在函数模板内部使用某种类型，必须告诉编译器我们正在使用的名字指的是一个类型
+比如
+template <class Parm,class U>
+Parm fcn(Param *array,U value)
+{
+	Param::size_type * p; 
+	//如果size_type是一种类型，则该表达式意味着声明
+	//如果size_type是一个对象，则意味着做一个乘法
+}
+如果不显式说明，编译器默认size_type是数据成员，如果要用的是类型，则这样说明
+Param fcn(Param *array,U value)
+{
+	typename Param::size_type * p;
+}
+(4)非类型模板形参
+应用在函数模板上的非类型模板形参：在调用函数时非类型形参将用值代替，值的类型在
+模板形参中指定。比如
+template <class T,size_t N>
+void array_init(T (&parm)[N])
+{
+	for(size_t i=0; i!=N; i++)
+		parm[i] = 0;
+}
+调用时直接这样：
+int a[10];
+array_init(a); //实例化为array_init(int(&)[10])
+(5)编写泛型程序注意的原则
+假如有
+template <class T>
+int compare(const T &a,const T &b)
+{
+	if(a < b) return -1;
+	if(b < a) return 1;
+	return 0;
+}
+容易出现的问题是，如果不支持操作符<的对象调用compare，则调用是无效的，程序会出错。
+这就是模板隐式依赖于形参类型的例子
+所以，编写模板代码时，对实参类型的要求尽可能少是很有益的。
+上述代码编写的好处是：
+const引用避免了复制构造函数的代价；
+用a<b和b<a而不是a<b和a>b符合编写原则，因为这让模板的隐式要求降低了。(可能类型支
+持<而不支持>)
