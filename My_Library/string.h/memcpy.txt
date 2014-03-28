@@ -1,0 +1,8 @@
+void *memcpy(void *dest,const void *src,size_t n)
+{
+	char *td = (char *)dest;
+	const char *ts = (char *)src;
+	for(; n > 0; --n,++td,++ts)
+		(*td) = (*ts);
+	return dest;
+}

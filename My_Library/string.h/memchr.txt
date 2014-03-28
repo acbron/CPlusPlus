@@ -1,0 +1,11 @@
+void *memchr(const void *dest,char c,size_t n);
+{
+	const char *td = (char *)dest; //将void指针转换成char指针，用const修饰，避免对象被修改
+	const char tc = c;
+	for(; n > 0; --n,++td)
+	{
+		if((*td) == tc)
+			return ((void *)td);
+	}
+	return NULL;
+}
