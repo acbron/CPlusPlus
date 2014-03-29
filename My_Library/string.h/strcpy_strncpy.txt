@@ -1,0 +1,21 @@
+将一个字符串从一个位置复制到另一个位置
+char* strcpy(char *s1,const char *s2)
+{
+    char *s = s1;
+    for(; (*s2) != '\0'; (*s++) = (*s2++));
+    (*s) = '\0';
+    return s1;
+}
+
+将一个字符串从一个位置复制到另一个位置，最多复制n个字节
+char* strncpy(char *s1,const char *s2,size_t n)
+{
+    char *s = s1;
+    for(; n > 0 && (*s2) != '\0'; --n)
+        (*s++) = (*s2++);
+    for(; n > 0; --n)
+        (*s++) = '\0';
+    (*s) = '\0';
+    return s1;
+}
+

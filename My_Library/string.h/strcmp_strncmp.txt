@@ -1,0 +1,21 @@
+基于字典顺序比较两个字符串,小于返回-1，等于返回0，大于返回1.
+int strcmp(const char *s1,const char *s2)
+{
+    for(; (*s1) == (*s2); s1++,s2++)
+        if((*s1) == '\0')
+            return 0;
+    return (*s1)<(*s2)?-1:1;
+}
+
+基于字典顺序比较两个字符串，最多比较n个字节
+int strncmp(const char *s1,const char *s2,size_t n)
+{
+    for(; n > 0; --n,++s1,++s2)
+    {
+        if((*s1) != (*s2))
+            return (*s1)<(*s2)?-1:1;
+        else if((*s1) == '\0')
+            return 0;
+    }
+    return 0;
+}

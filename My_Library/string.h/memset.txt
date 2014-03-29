@@ -1,0 +1,10 @@
+memset只能将值初始为-1或0
+
+void* memset(void *dest,int c,size_t n)
+{
+    unsigned char tc = c;
+    unsigned char *td = (unsigned char *)dest;
+    for(; n > 0; --n,++td)
+        (*td) = tc;
+    return dest;
+}

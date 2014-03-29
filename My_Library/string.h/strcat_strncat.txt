@@ -1,0 +1,20 @@
+在字符串dest之后连接上src
+char *strcat(char *s1,const char *s2)
+{
+    char *s = s1;
+    for(; (*s) != '\0'; s++);
+    for(; (*s2) != '\0'; (*s++) = (*s2++));
+    (*s) = '\0';
+    return s1;
+}
+
+在字符串s1之后连接上s2，最多增加n个字符
+char* strncat(char *s1,const char *s2,int n)
+{
+    char *s = s1;
+    for(; (*s) != '\0'; s++);
+    for(; n > 0; --n,(*s++) = (*s2++));
+    (*s) = '\0';
+    return s1;
+}
+
