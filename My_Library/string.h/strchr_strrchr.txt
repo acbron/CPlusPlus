@@ -1,0 +1,23 @@
+从字符串头开始查找某字符出现的位置
+char* strchr(const char *str,char c)
+{
+    const char *ts = str;
+    const char tc = c;
+    for(; (*ts) != '\0'; ts++)
+        if((*ts) == tc)
+            return ((char*)ts);
+    return NULL;
+}
+
+从字符串尾开始查找某字符出现的位置
+char* strrchr(const char *str,char c)
+{
+    const char tc = c;
+    const char *s = NULL;
+    for(; (*str) != '\0'; ++str)
+    {
+        if((*str) == tc)
+            s = str;
+    }
+    return ((char *)s);
+}
