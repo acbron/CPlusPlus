@@ -1,0 +1,20 @@
+在字符串s1中查找字符串s2第一次出现的位置，s1的长度必须长于s2
+
+char* strstr(const char *s1,const char *s2)
+{
+    const char *ts1,*ts2;
+    for(ts1 = s1; ts1 != '\0'; ++ts1)
+    {
+        ts2 = s2;
+        if((*ts1) == (*ts2))
+        {
+            const char *t = ts1;
+            for(; (*t)==(*ts2); ++t,++ts2)
+                if((*ts2) == '\0')
+                    return ((char *)ts1);
+            if((*ts2) == '\0')
+                return ((char *)ts1);
+        }
+    }
+    return NULL;
+}

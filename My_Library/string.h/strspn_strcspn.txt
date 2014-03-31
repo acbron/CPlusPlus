@@ -1,0 +1,27 @@
+从字符串s1的起始处开始，寻找第一个不出现在s2中的字符，返回其位置索引值
+size_t strspn(const char *s1,const char *s2)
+{
+    const char *ts1 = s1;
+    const char *ts2;
+    for(; (*ts1) != '\0'; ts1++)
+    {
+        ts2 = s2;
+        for(; (*ts2) != '\0'; ts2++)
+            if((*ts1) == (*ts2))
+                break;
+        if(*ts2 == '\0')
+            return (ts1-s1);
+    }
+    return (ts1-s1);
+}
+
+从字符串s1的起始处开始，寻找第一个出现在s2中的字符，返回其位置索引值
+size_t strcspn(const char *s1,const char *s2)
+{
+    const char *ts1,*ts2;
+    for(ts1 = s1; (*ts1) != '\0'; ++ts1)
+        for(ts2 = s2; (*ts2) != '\0'; ++ts2)
+            if((*ts1) == (*ts2))
+                return (ts1-s1);
+    return (ts1-s1);
+}

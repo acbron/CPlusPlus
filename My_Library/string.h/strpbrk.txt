@@ -1,0 +1,11 @@
+在字符串s中查找strCharSet中任意字符第一次出现的位置的指针值
+
+char* strpbrk(const char *s1,const char *s2)
+{
+    const char *ts1,*ts2;
+    for(ts2 = s2; (*ts2) != '\0'; ++ts2)
+        for(ts1 = s1; (*ts1) != '\0'; ++ts1)
+            if((*ts1) == (*ts2))
+                return ((char *)ts1);
+    return NULL;
+}
