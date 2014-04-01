@@ -1,0 +1,86 @@
+//Queue.h
+//大多数编译器不支持将template的实现和声明分离！
+#ifndef QUEUE_H
+#define QUEUE_H
+
+template <typename T> class Queue;
+
+template <typename T> class QueueItem
+{
+    friend class Queue <T>; //定义为友元，才能访问私有成员变量
+    QueueItem(const T &t):item(t),next(0){}
+    T item;
+    QueueItem *next;
+};
+
+template <typename T> class Queue
+{
+public:
+    Queue():head(0),tail(0) { }
+    Queue(const Queue &);
+    Queue & operator= (const Queue &rhs)
+    {
+        copy_elems(rhs);
+    }
+    ~Queue() { destroy(); }
+    T& front();
+    const T& front() const;
+    void push(const T &);
+    void pop();
+    bool empty() const
+    {
+        return head == 0;
+    }
+private:
+    QueueItem <T> *head; //切勿声明为QueueItem *head，类不会自动推断出内部使用模板的实参
+    QueueItem <T> *tail;
+    void destroy();
+    void copy_elems(const Queue &);
+};
+
+template <typename T> void Queue <T>::destroy() //类成员函数的定义template <typename T> ret-type className<T>::member-name;
+{
+    while(!empty())
+        pop();
+}
+
+template <typename T> void Queue <T>::pop()
+{
+    if(head == 0)
+        return;
+    QueueItem <T> *p = head;
+    head = head->next;
+    delete p;
+}
+
+template <typename T> void Queue <T>::push(const T &rhs)
+{
+    QueueItem <T> *p = new QueueItem <T>(rhs);
+    if(empty())
+        head = tail = p;
+    else
+    {
+        tail->next = p;
+        tail = tail->next;
+    }
+}
+
+template <typename T> void Queue <T>::copy_elems(const Queue <T> &rhs)
+{
+    for(QueueItem <T> *ptr = rhs.head; ptr; ptr = ptr->next)
+        push(ptr->item);
+}
+
+template <typename T> T& Queue <T>::front()
+{
+    return head->item;
+}
+
+template <typename T> const T& Queue <T>::front() const
+{
+    return head->item;
+}
+
+
+#endif // QUEUE_H
+

@@ -1,0 +1,55 @@
+类模板成员
+1.
+template <class Type> class QueueItem
+{
+	Type d;
+	QueueItem *next;
+};
+
+template <class Type> class Queue
+{
+public:
+	Queue();//相当于Queue<type>，编译器可以推断出这样的形参结果;
+private:
+	QueueItem<Type> *Item; //不能直接QueueItem *Item，因为编译器不会为类中使用的其他模板的模板形参进行推断
+}
+
+2.类模板成员函数
+规则：
+(1)必须以关键字template开头，后接类的模板参数表
+(2)必须指出它是哪个类的成员
+(3)类名必须包含其模板形参
+template <class T> ret-type Queue <T>::member-name;
+
+类模板成员函数的形参是由调用该函数的对象的类型确定的
+
+类模板的成员函数只有为程序所用时才实例化
+
+3.非类型形参的模板实参
+template <int hi,int wid> class screan{}
+声明方式为scean <1,2> s;即模板实参都必须是常量表达式
+
+4.类模板中的友元声明
+(1)普通非模板类或函数的友元声明，将友元关系授予明确指定的类或函数
+template <typename T> class className {
+	friend class className2;
+	friend void func();
+};
+(2)类模板或函数模板的友元声明，授予对友元所有实例的访问权
+template <typename T1> className {
+	template <typename T2> friend class className2; //意味着任意类型的className2都可以访问className
+	template <typename T3> friend void func();
+};
+(3)只授予对类模板或函数模板的特定实例的访问权的友元声明
+template <typename T> class className {
+	friend class className2 <char *>; //更常见的是friend class className2 <T>;但必须在className模板之前声明className2是一个模板类
+	friend void func <char *>;
+};
+声明依赖性：想要限制对特定实例化的友元关系时，必须在可以用于友元声明之前声明类或函数。
+如果没有实现告诉编译器该友元是个模板，则编译器将认为该友元是一个普通非模板类或非模板函数
+
+5.类模板的static成员
+每个实例化表示截然不同的类型，所以给定实例化的所有对象都共享一个static成员。比如Foo<int>共享一个static，Foo<string>共享另外一个static。
+static成员函数只有在程序中使用时才进行实例化，这跟非static成员函数是一致的。
+
+

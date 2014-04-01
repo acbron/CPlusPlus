@@ -96,3 +96,23 @@ int compare(const T &a,const T &b)
 const引用避免了复制构造函数的代价；
 用a<b和b<a而不是a<b和a>b符合编写原则，因为这让模板的隐式要求降低了。(可能类型支
 持<而不支持>)
+
+<2>实例化
+产生模板的特定类型实例的过程称为实例化。
+
+类模板在引用实际模板类类型时实例化：类模板形参是必须的，比如queue <int> qi;
+
+函数模板在调用它或用它对函数指针进行初始化或赋值时初实例化:
+这里给出函数指针指向模板的实例化
+template <typename T> int compare(const T&,const T&);
+int (*pf) (const int &,const int &) = compare;
+ 
+函数模板的显示实参
+template <typename T1,typename T2,typename T3> T1 sum(T2,T3);
+设有int x,long y;
+则sum<long>(x,y)是可以的，因为参数匹配是从左到右的，后面的参数可以不必显式声明。
+但如果是template <typename T1,typename T2,typename T3> T3 sum(T2,T1)，则上述调用就出错了。
+此时除非这样调用sum<long,int,long>(x,y);
+所以，func<type1,type2,type3>(x,y)是比较保险的使用方法。
+
+
