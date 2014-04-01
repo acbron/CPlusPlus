@@ -16,11 +16,15 @@ template <typename T> class QueueItem
 template <typename T> class Queue
 {
 public:
-    Queue():head(0),tail(0) { }
-    Queue(const Queue &);
-    Queue & operator= (const Queue &rhs)
+ Queue():head(0),tail(0) { }
+    Queue(const Queue &rhs):head(0),tail(0)
     {
         copy_elems(rhs);
+    }
+    Queue & operator= (const Queue &rhs)
+    {
+        swap(rhs); //异常安全性，防止自我赋值导致的问题
+        return *this;
     }
     ~Queue() { destroy(); }
     T& front();
@@ -31,6 +35,8 @@ public:
     {
         return head == 0;
     }
+    void swap(const Queue &);
+
 private:
     QueueItem <T> *head; //切勿声明为QueueItem *head，类不会自动推断出内部使用模板的实参
     QueueItem <T> *tail;
@@ -81,6 +87,11 @@ template <typename T> const T& Queue <T>::front() const
     return head->item;
 }
 
-
+template <typename T> void Queue <T>::swap(const Queue<T> &rhs) //copy-and-swap方法
+{
+    Queue <T> temp(rhs);
+    std::swap(head,temp.head);
+    std::swap(tail,temp.tail);
+}
 #endif // QUEUE_H
 
