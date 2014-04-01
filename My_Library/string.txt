@@ -1,0 +1,103 @@
+实现了简易的string类
+要求正确管理资源：
+1.能像int类型那样定义遍历，并且支持赋值，复制。
+2.能用作函数的参数类型及返回类型
+3.能用作标准库容器的元素类型，比如vector
+
+class String
+{
+public:
+    String(); //默认构造函数
+    String(const char *); //复制构造函数1
+    String(const String &); //复制构造函数2
+    ~String()
+    {
+        delete []_data;
+    }
+
+    //赋值操作符，设计主要参照《Effective C++》条款10，11
+    //处理“自我赋值”导致的异常，采用copy and swap方法
+    String& operator= (const String &rhs)
+    {
+        String temp(rhs); //copy
+        swap(temp); //swap
+        return *this;
+    }
+    char& operator[] (const size_t pos)
+    {
+        if(pos >= _size)
+            return _data[_size];
+        return _data[pos];
+    }
+    friend istream & operator >> (istream &,String &);
+    friend ostream & operator << (ostream &,const String &);
+    friend bool operator == (const String &,const String &);
+    friend bool operator != (const String &,const String &);
+
+    size_t size();
+    void swap(String &);
+
+private:
+    char *_data;
+    size_t _size;
+};
+
+String::String():_data(new char[1])
+{
+    (*_data) = '\0';
+    _size = 0;
+}
+
+String::String(const char *rhs):_data(new char[strlen(rhs)+1])
+{
+    strcpy(_data,rhs);
+    _size = strlen(_data);
+}
+
+String::String(const String &rhs):_data(new char[strlen(rhs._data)+1])
+{
+    strcpy(_data,rhs._data);
+    _size = strlen(_data);
+}
+
+size_t String::size()
+{
+    return _size;
+}
+
+void String::swap(String &rhs)
+{
+    std::swap(_data,rhs._data);
+    std::swap(_size,rhs._size);
+}
+
+istream& operator >> (istream &is,String &rhs)
+{
+    is >> rhs._data;
+    if(!is)
+    {
+        rhs = String();
+    }
+    else
+        rhs._size = strlen(rhs._data);
+    return is;
+}
+
+ostream& operator << (ostream &os,const String &rhs)
+{
+    os << rhs._data;
+    return os;
+}
+
+bool operator == (const String &lhs,const String &rhs)
+{
+    if(strcmp(lhs._data,rhs._data) == 0)
+        return true;
+    return false;
+}
+
+bool operator != (const String &lhs,const String &rhs)
+{
+    return !(lhs == rhs);
+}
+
