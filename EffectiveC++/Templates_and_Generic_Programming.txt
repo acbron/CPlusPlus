@@ -1,0 +1,84 @@
+				条款42：了解typename的双重意义
+			Understand the two meanings of typename.
+	在声明template时，typename和class的意义是相同的。
+	但有些场合必须使用template，比如有如下代码：
+template <typename C>
+void print2nd(const C &container) // --0
+{
+	C::const_iterator iter(container.begin()); //--1
+	//C::const_iterator *x; --2
+	...
+}
+	1和2面临相同的问题，那就是模板函数不知道const_iterator是一个类型，还是一个成员变量！而通常来说，编译器会默认把它当成变量。这样一来，1会编译不通过，2则被认为是一个乘法运算。
+	首先，给出几个概念：
+从属名称(dependent names)：template内出现的名称相依与某个template参数
+嵌套从属名称(nested dependent names)：从属名称在class内呈嵌套状。（所谓嵌套，比如C::const_iterator，就是说const_iterator嵌套在C内）
+嵌套从属类型名称(nested dependant type name)：指涉某类型的嵌套从属名称
+	上述代码的解决方案是：
+template <typename C>
+void print2nd(const C &container)
+{
+	typename C::const_iterator iter(container.begin());
+	...
+}
+	即，一般性规则是，任何时候当你想要在template中指涉一个嵌套从属类型名称时，就必须在它的前一个位置放上关键字typename
+	所以，在0上是不可以放typename的，因为它不是嵌套从属类型名称。
+	除了一般性规则以外，还有两种特殊情况：
+	typename不可以出现在base classes list内的嵌套从属类型名称之前，也不可以在member initialization list中作为base class的修饰符。
+	比如，这样的例子：
+template <typename T>
+class Derived:: public Base<T>::Nested {   //base class list
+	public:
+		explicit Derived(int x):Base<T>::Nested(x) //member initialization list
+		...
+};
+
+
+
+				条款43：学习处理模板化基类内的名称
+			Know how to access names in templatized base classes.
+	首先给出以下代码：
+template <typename Company>
+class MySender {
+	public:
+		void sendClear(const MsgInfo &info)
+		{
+			std::string msg;
+			Company c;
+			c.sendClearText(msg);
+		}
+		void sendSecret(const MsgInfo &info)
+		{ ... } //类似sendClear,唯一不桶的是这里调用c.sendEncrypted。详细内容参阅原书
+};
+template <typename Company>
+class LoggingMsgSender:public MsgSender<Company> {
+	public:
+		//与基类内的sendClear不同，避免遮掩“继承而得的名称(条款33)”，也避免重新定义一个继承而得的non-virtual函数(条款36）
+		void sendClearMsg(const MsgInfo &info) 
+		{
+			sendClear(info); //无法编译通过
+		}
+};
+	编译无法通过的原因是，编译器认为sendClear()不存在！问题在于，LoggingMsgSender只有被实例化的时候才知道这是个怎样的类，而Company不知道的话，又无法确定MsgSender<Company>是一个怎样的类，因此无法知道存在sendClear()这个函数。
+	再给出一个模板特化的例子：
+class CompanyZ;
+template <>
+class MsgSender<CompanyZ> {
+	public:
+		void sendSecret(const MsgInfo &info);
+};
+	这是个特化版的MsgSender template，当template实参是CompanyZ是才被使用。这就是所谓的模板全特化(total template specialization)
+	回到derived class LoggingMsgSender，当Company == CompanyZ是sendClear()是不存在的！这就是C++拒绝这个调用的原因，因为它知道base class template可能被特化，而那个特化版本可能不提供和一般性template相同的接口。因此它往往拒绝在template base classes（模板化基类）内寻找继承而来的名称。
+	解决方法有三种：
+template <typename Company>
+class LoggingMsgSender:public MsgSender<Company> {
+	public:
+		//using MsgSender<Company>::sendClear; --1 与条款33不同，这里不是base被derived名称遮掩，而是编译器根本不去base作用域找，所以这里通过using告诉它去找
+		void sendClearMsg(const MsgInfo &info)
+		{
+			//sendClear(info) --1
+			this->sendClear(info); // --2
+			MsgSender<Company>::sendClear(info); //--3 如果调用的是virtual函数，这个明确资格修饰(explicit qualification)会关闭“virtual绑定行为”
+		}
+};
+	通过这种方法，如果有LoggingMsgSender<CompanyZ>，发现有对sendClearMsg的调用，会无法通过编译，因为CompanyZ不支持这个调用。		
