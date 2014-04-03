@@ -1,0 +1,41 @@
+C的文件流操作比起C++来速度更快，包含在<cstdio>中
+
+C File I/O 是基于FILE指针的，即FILE *pFile;
+
+常用的函数有：
+1.FILE * fopen(const char *filename,const char *mode);
+举例：fopen("test.txt","r");
+
+该函数是用来打开一个文件的。
+其中filename是文件名,mode是打开的方式。打开方式有如下几种：
+"r"以只读方式打开
+"w"以只写方式打开
+"a"以追加方式打开，即不覆盖原有文件内容
+"r+"以读/写方式打开，定位在开始处
+"w+"以读/写方式打开，如过无该文件则生成新文件，如果有，则会覆盖
+"a+"以读/写方式打开，不覆盖原内容
+
+2.int fclose(FILE *pFile);
+关闭文件，如果关闭成功，返回0，否则返回EOF
+
+3.int fscanf(FILE *pFile,const char *format[address],...])；
+用法和scanf一样，比如fscanf(pFile,"%d",&x);
+暗格式从流中读入数据，成功返回0，否则返回EOF
+
+4.int fprintf(FILE *pFile,const char *format[address],...);
+用法和printf一样，比如fprintf(pFile,"%d",x);
+按格式输入到流，成功返回0，否则返回EOF
+
+5.int fputs(const char *s,FILE *pFile);
+写一个字符串到流中
+
+6.int fgets(char *s,int n,FILE *pFile);
+从流中读入一行或指定的n个字符
+
+7.int fputc(int c,FILE *pFile);
+向流写一个字符
+
+8.int fgetc(FILE *pFile);
+从流中读一个字符
+
+
