@@ -1,0 +1,114 @@
+#ifndef STACK_H
+#define STACK_H
+
+#include <iostream>
+
+template <typename Type> class Stack;
+
+template  <typename Type>
+class listNode
+{
+    friend class Stack<Type>; //声明友元，才能访问私有成员
+    listNode(const Type &t):_data(t),pre(0),next(0){}
+    Type _data;
+    listNode *pre,*next;
+};
+
+template <typename Type>
+class Stack
+{
+public:
+    Stack():tail(0),_size(0) { }
+    Stack(const Stack &rhs):tail(0),_size(0)
+    {
+        copy_elems(rhs);
+    }
+    Stack & operator= (const Stack &rhs)
+    {
+        swap(rhs); //考虑异常安全性，防止自我赋值出现异常，采用copy-and-swap
+        return *this;
+    }
+    ~Stack()
+    {
+        destroy();
+    }
+
+    void push(const Type &);
+    void pop();
+    const Type & top()const;
+    size_t size();
+    bool empty();
+
+private:
+    listNode<Type> *head;
+    listNode<Type> *tail;
+    size_t _size;
+    void swap(const Stack &);
+    void destroy();
+    void copy_elems(const Stack &);
+};
+
+template <typename Type> const Type& Stack<Type>::top()const
+{
+    return tail->_data;
+}
+
+template <typename Type> void Stack<Type>::push(const Type &rhs)
+{
+    listNode<Type> *temp = new listNode<Type>(rhs);
+    if(empty())
+        head = tail = temp;
+    else
+    {
+        tail->next = temp;
+        temp->pre = tail;
+        tail = temp;
+    }
+    ++_size;
+}
+
+template <typename Type> void Stack<Type>::pop()
+{
+    if(tail == 0)
+        return;
+    _size --;
+    if(head == tail)
+    {
+        head = tail = 0;
+        return;
+    }
+    tail = tail->pre;
+    tail->next = NULL;
+}
+
+template <typename Type> size_t Stack<Type>::size()
+{
+    return _size;
+}
+
+template <typename Type> bool Stack<Type>::empty()
+{
+    return (tail == 0);
+}
+
+template <typename Type> void Stack<Type>::swap(const Stack &rhs)
+{
+    Stack<Type> temp(rhs);
+    std::swap(tail,temp.tail);
+    std::swap(_size,temp._size);
+}
+
+template <typename Type> void Stack<Type>::destroy()
+{
+    while(!empty())
+        pop();
+}
+
+template <typename Type> void Stack<Type>::copy_elems(const Stack &rhs)
+{
+    for(listNode<Type> *ptr = rhs.head; ptr; ptr = ptr->next)
+        push(ptr->_data);
+}
+
+#endif // STACK_H
+
