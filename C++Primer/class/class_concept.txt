@@ -33,4 +33,48 @@ returnType do_cf();
 -类成员声明的名字查找：先检查出现在名字使用之前的类成员声明；否则检查包含类定义的作用域中出现的声明以及出现在类定义之前的声明；
 -类成员定义中的名字查找：先检查成员函数局部作用域中的声明；然后再查找类成员中的声明；最后查找在此成员函数定义之前的声明；
 
+6.构造函数
+-构造函数可以被重载，类对其数量没有限制。只有在未定义任何构造函数的时候，编译器才会自动生成一个默认构造函数。
+-构造函数的初始化式比在函数体内进行赋值计算要好，特别是类中有其他类类型的数据成员时，可以避免该成员的构造函数成本。
+-当类具有const数据成员的时候，必须使用初始化式。
+-初始化式的初始顺序是按照成员的声明顺序进行的，而跟其本身的列出顺序无关。
+-默认实参可以减少代码重复，比如
+Sales_item (const std::string &book =""):isbn(book),units_sold(0),revenue(0.0) {}
+这样，Sales_item s1("C++ Primer")和Sales_item s2都是合法的。这就是所谓的“缺省参数值”。
+-隐式类型转换：对于上述Sales_item类，如果有
+std::string null_book = "9-99";
+Sales_item item("9-99");
+item.same_item(null_book); //same_item(const Sales_item &)是一个成员函数，接收Sales_item类型的实参。
+这样是合法的，string类型的null_book会调用Sales_item的默认构造函数，隐式地转换成Sales_item类。
+抑制隐式转换的做法是，把构造函数声明为explicit。此时，只能进行显式转换item.same_item(Sales_item(null_book));
+通常将构造函数声明为explicit是有好处的，这样可以避免错误，当需要转换类型的时候显式声明一下就可以了。
+-类成员的显式初始化只有在没有定义构造函数，且所有数据成员都是public的情况下才能使用。比如
+struct Data {
+	int ival;
+	char *ptr
+};
+Data val = { 0,0 };
+需要注意的是，显式初始化顺序必须按照成员的声明顺序。
+
+7.友元
+-友元机制允许一个类将对其非公有成员的访问权授予指定的函数或类。
+-友元声明成组地放在类定义的开始或结尾是个好主意。
+-可以将函数，类，类的特定成员函数设为某个类的友元。
+-友元关系之间的声明和定义是相互依赖的。比如
+class Window_Mgr;
+class Screen {
+	friend Window_Mgr& Window_Mgr::relocate();
+};
+由于Screen要将Window_Mgr声明为友元，所以Window_Mgr必须在其定义前声明，同样，由于relocate()函数需要使用Screen对象的数据成员，因此必须在Screen定义完后它才定义。
+
+8.static类成员
+-static类成员是与类关联的，而与类对象无关。
+-static类成员的优点：
+成员只在类的作用域中有效，可以避免与其他类的成员或全局对象名字冲突。
+可以实施封装，static成员可以是私有成员，而全局对象不可以。
+-声明static只需要在成员前面加入关键字static，而其定义部分不需该关键字。
+-使用static成员的方法有：用对象/引用/指针直接调用；通过作用域操作符::调用
+-static成员函数没有this指针，因为它与类对象是无关联的。static成员函数不能声明为const，也不能声明为虚函数
+-static数据成员必须在类定义体的外部定义：int myClass::staticVar = 1;
+-const static数据成员则可以在类定义体内部定义，但必须在类的外部也定义，只不过不需再指定初始值。比如const int myClass::const_stacic_Var;(初始值在类定义内部)
 
