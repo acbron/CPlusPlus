@@ -4,7 +4,7 @@ C File I/O 是基于FILE指针的，即FILE *pFile;
 
 常用的函数有：
 1.FILE * fopen(const char *filename,const char *mode);
-举例：fopen("test.txt","r");
+举例：FILE *pf = fopen("test.txt","r");
 
 该函数是用来打开一个文件的。
 其中filename是文件名,mode是打开的方式。打开方式有如下几种：

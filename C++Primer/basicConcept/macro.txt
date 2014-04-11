@@ -49,5 +49,33 @@ __VA_ARGS__是系统预定义宏，被自动替换为参数列表
 #define TO_STRING1(x) #x
 只要把宏语句作为x传入TO_STRING即可查看该语句被展开后的样子
 
+7.当宏没有使用括号时
+#define MULTIPLY(a,b) a*b
+则MULTIPLY(2+3,3+5)的结果是16,解析为2+3*3+5
+若要实现(2+3)*(3+5)，应该这样
+MULTIPLY(a,b) (a)*(b)
 
+8.宏内不要使用参数
+#define MUL(a) a*a
+则9/MUL(3) = 9，而不算是1。解析为9/3*3
+如果要实现9/(3*3)，应该这样#define MUL(a) (a*a)
+
+9.其他预处理问题
+-可以直接预处理if，像这样
+#if condition
+	do something
+#endif
+-#include表示将头文件复制到当前文件
+#include<>表示首先从标准库中查找是否存在该头文件
+#include""表示首先从当前文件所在的文件夹内查找，找不到再找标准库
+-头文件防止被重复包含，则用
+#ifndef FILE_H
+#define FILE_H
+#endif
+
+10.
+__FILE__：当前文件路径
+__DATA__：当前日期
+__TIME__：当前时间
+__LINE__：当前行号
 
