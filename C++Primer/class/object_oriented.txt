@@ -1,0 +1,53 @@
+1.面向对象编程概述
+-面向对象编程基于三个基本概念：数据抽象，继承和动态绑定。
+-面向对象编程的关键思想是：多态(polymorphism)。
+-面向对象编程的基石：引用和指针的静态类型与动态类型可以不同。
+-继承：用已有的类类型来定义新的数据类型
+-动态绑定：在C++中，通过基类的引用或指针调用虚函数时，发生动态绑定。引用（指针）的静态类型是基类类型，所调用的虚函数版本在运行时确定。动态绑定指的是运行时引用（指针）所指的类型的实现版本，引用（指针）所指类型为动态类型。
+
+2.基类和派生类
+-可见性：
+public：用户和派生类可见
+private：类内部和友元可见
+protected：派生类可见，用户不可见（注：派生类只能通过其对象访问基类的protected成员，派生类内部本身不能访问！）
+-派生类
+class Derived: access-label Base { ... };
+Base必须在Derived之前定义，因为Derived可能需要用到Base的成员，只声明Base是不行的
+派生类对象由本身定义（非static）成员加上由基类（非static）成员组成的子对象。
+派生类的声明不可以用上述的定义式，而是用class Derived;
+-虚函数
+以关键字virtual声明的成员函数
+一旦函数被声明为虚函数，它就一直是虚函数，派生类无法改变该函数为虚函数这一事实。派生类重定义虚函数时，可以使用virtual关键字，也可以不使用。
+覆盖虚函数机制：用作用域操作符强制使用基类类型的函数版本
+Base *b = &derived;
+b->Base::virtualFunc();
+虚函数通常不要有默认实参，因为在进行动态绑定的时候，如果缺省了实参，那么发生的事情是函数版本是动态类型的，而参数却来自于静态类型的。
+
+3.公有，私有和受保护的继承
+-public继承：基类的public成员为派生类的public成员，基类的protected成员为派生类的protected成员
+-protected继承：基类的public,protected成员都成为派生类的protected成员
+-private继承：基类的所有成员在派生类中为private成员
+-接口继承和实现继承：public派生类继承基类的接口，private和protected则通常是实现继承，即利用基类的成员来实现自己的功能。
+-恢复成员的访问级别：
+class Base
+{
+	public:
+		std::size_t size() const;
+	protected:
+		std::size_t n;
+};
+class Derived:private Base
+{
+	public:
+		using Base::size;
+	protected:
+		using Base::n;
+};
+原本Derived中，继承而来的成员都是private的，但通过using声明，size()成为了public
+-默认情况下的保护级别：
+struct默认为public继承，class默认为private继承
+
+4.友元关系不能在继承体系中共用
+5.静态成员在继承体系中也是只有一个实例，如果派生类以private继承，static成员对它来说是不可见的。
+
+
