@@ -78,3 +78,16 @@ class Screen {
 -static数据成员必须在类定义体的外部定义：int myClass::staticVar = 1;
 -const static数据成员则可以在类定义体内部定义，但必须在类的外部也定义，只不过不需再指定初始值。比如const int myClass::const_stacic_Var;(初始值在类定义内部)
 
+9.C++类可以包含自己类型的静态数据成员，也可以包含自己类型的指针，但不能包含自己类型的对象。
+class Test {
+	static Test self; //ok,静态成员与类对象的大小无关
+	Test *p_self; //ok，指针是固定大小的，32位4字节，64位8字节
+	Test t; //error，类是未完成的，编译器无法知道类对象的大小
+};
+
+10.空类的大小问题
+class Empty {}; // sizeof(Empty) == 1;这是为了保证每个对象的地址都不相同
+class Derived1:public Empty {}; //sizeof(Derived1) == 1;
+class Derived2:public Empty { int i; }; //sizeof(Derived2) == 4;(not 5!)
+class Derived3:virtual public Empty {}; //sizeof(Derived3) == 8;(64位操作系统，该大小是一个虚指针的大小);
+class Derived4:virtual public Empty { int i; } //sizeof((Derived4) == 16;
