@@ -1,16 +1,30 @@
 1.宏可以像变量/函数一样被定义：
 #define SIZE 1024
 #define min(x,y) (x)>(y)?(y):(x)
-注意不要在将一个自增/减的变量作为宏参数
+注意不要在将一个自增/减的变量作为宏参数，同时也不要把变量作为宏参数
 #define mul(a) (a)*(a)
-mul(a++) ~ (a++)*(a++) 如果a=1，此时返回1，a=3
+mul(a++) ~ (a++)*(a++) 如果a=1，此时返回2，a=3
 mul(++a) ~ (++a)*(++a) 如果a=1，此时返回9，a=3
+
+#define mul2(a) a*a
+mul2(a++) ~ a++*a++ 如果a=1，此时返回2，a=3
+mul2(++a) ~ ++a*++a 如果a=1，此时返回9，a=3
+
+9/mul(3) = 9，而不算是1。解析为9/3*3
+如果要实现9/(3*3)，应该这样#define mul(a) (a*a)
+
+#define MULTIPLY(a,b) a*b
+则MULTIPLY(2+3,3+5)的结果是16,解析为2+3*3+5
+若要实现(2+3)*(3+5)，应该这样
+MULTIPLY(a,b) (a)*(b)
+
+注意到以上宏的执行顺序都是从左到右计算，并且在没有括号的情况下，忽略优先级！
 
 2.如果宏需要参数，你可以不传，编译器会给你警告，但是这会导致错误。
 编译器（预处理器）对宏的语法检测不够，所以更多检查性工作得你自己
 来做
 
-3.#和##
+3.#，##
 	#符号把一个符号直接转换成字符串
 #define STRING(x) #x
 const char *str = STRING(test_string);//str的内容是"test_string"
@@ -23,12 +37,15 @@ const char *str = STRING(test_string);//str的内容是"test_string"
 LOG("%s %d",str,count)
 __VA_ARGS__是系统预定义宏，被自动替换为参数列表
 
-5.当一个宏自己调用自己时
+5.得到一个field在结构题（struct）中的偏移量
+#define OFFSET( type, field ) ( (size_t) & ((type *) 0)->field )
+
+6.当一个宏自己调用自己时
 #define TEST(x) (x+TEST(X))
 为防止无限递归展开，语法规定，当一个宏遇到自己时，就停止展开。
 所以TEST(1)被展开为1+TEST(1)
 
-6.宏参数的prescan
+7.宏参数的prescan
 当一个宏参数被放进宏体时，这个宏参数会首先被全部展开，当展开后的宏参数被放进
 宏体时，预处理器对新展开的宏进行第二次扫描，并继续展开
 #define PARAM(x) x
@@ -49,18 +66,8 @@ __VA_ARGS__是系统预定义宏，被自动替换为参数列表
 #define TO_STRING1(x) #x
 只要把宏语句作为x传入TO_STRING即可查看该语句被展开后的样子
 
-7.当宏没有使用括号时
-#define MULTIPLY(a,b) a*b
-则MULTIPLY(2+3,3+5)的结果是16,解析为2+3*3+5
-若要实现(2+3)*(3+5)，应该这样
-MULTIPLY(a,b) (a)*(b)
 
-8.宏内不要使用参数
-#define MUL(a) a*a
-则9/MUL(3) = 9，而不算是1。解析为9/3*3
-如果要实现9/(3*3)，应该这样#define MUL(a) (a*a)
-
-9.其他预处理问题
+8.其他预处理问题
 -可以直接预处理if，像这样
 #if condition
 	do something
@@ -73,7 +80,7 @@ MULTIPLY(a,b) (a)*(b)
 #define FILE_H
 #endif
 
-10.
+9.
 __FILE__：当前文件路径
 __DATA__：当前日期
 __TIME__：当前时间

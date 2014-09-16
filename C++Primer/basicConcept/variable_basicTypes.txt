@@ -48,6 +48,11 @@ int a[100]; //sizeof(a) = 4*100 = 400
 
 <2>结构体的字节大小
 CPU的优化规则：对于n字节的元素(n=2,4,8...),它的首地址能被n整除，才能获得最佳性能。
+所以bool,char可以任意对齐，因为它们字节数为1
+short与2对齐
+int, float与4对齐
+double, long long与8对齐
+
 结构体的默认对齐参数是8
 如：
 struct B {
@@ -67,11 +72,33 @@ sizeof(C) = 8;
 所以int i在第二行，对齐到了字节4。同理bool b2也占了一行。
 具体图示为
 b - - -
-   i
+i i i i
 b - - -
 而结构C为
-   i
+i i i i
 b b - -
+
+再看
+struct D {
+	int a;
+	char b;
+	short int c;
+	long long d;
+};
+sizeof(D) = 16;
+这里最长的为long long8个字节，所以结构分布图为
+a a a a b - c c
+d d d d d d d d
+struct E {
+	char c;
+	int a;
+	short b;
+	long long d;
+};
+sizeof(E) = 24;
+c - - - a a a a 
+b b - - - - - -
+d d d d d d d d
 
 再考虑空类情况
 class A{}; // sizeof(A) = 1
