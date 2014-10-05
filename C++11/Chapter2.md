@@ -109,10 +109,12 @@ C++提供虚函数的描述符`override`，如：
 	
 	//a.cpp
 	#include "a.h"
-	template void func<int>(int);
+	template void func<int>(int); //在全局中声明
+	...
 	func(3);
 	
 	//b.cpp
 	#include "a.h"
-	extern void func<int>(int);
+	extern void func<int>(int); //在全局中声明
+	...
 	func(4);
